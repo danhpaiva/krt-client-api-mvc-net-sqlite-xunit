@@ -1,4 +1,4 @@
-## 🚀 KRT.Cliente.API: Uma API de Clientes Construída com Qualidade e Performance
+## 🚀 KRT.Cliente.API: <br> Uma API de Clientes Construída com .Net e Redis
 
 <p align="center">
    <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/api.png?raw=true" width="700" alt="Clique aqui para ver a imagem da API">
@@ -89,3 +89,14 @@ dotnet test KRT.Cliente.API.Test
 <p align="center">
    <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/testes_unitarios.png?raw=true" width="700" alt="Clique aqui para ver a imagem dos Testes">
 </p>
+
+## 👤 Desenvolvedor
+
+Este projeto foi desenvolvido por:
+
+  * **Nome:** Daniel Paiva
+  * **LinkedIn:** [https://www.linkedin.com/in/danhpaiva/](https://www.linkedin.com/in/danhpaiva/)
+
+Sinta-se à vontade para conectar-se e discutir padrões de arquitetura e resiliência\!
+
+***Criado com ❤️ e .NET***
