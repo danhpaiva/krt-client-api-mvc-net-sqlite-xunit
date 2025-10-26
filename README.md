@@ -1,18 +1,18 @@
-## 🚀 KRT.Cliente.API: <br>Uma API de Clientes Construída com Qualidade e Performance
+## 🚀 KRT.Cliente.API: Uma API de Clientes Construída com Qualidade e Performance
 
 <p align="center">
    <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/api.png?raw=true" width="700" alt="API">
 </p>
 
-Este repositório apresenta um projeto de API RESTful focada na gestão de dados de clientes (`Conta`), desenvolvido em **ASP.NET Core** e seguindo as mais rigorosas práticas de engenharia de software para garantir escalabilidade, manutenibilidade e alta performance.
+Este repositório apresenta um projeto de API RESTful focada na gestão de dados de clientes (`Conta`), desenvolvido em **ASP.NET Core** e seguindo as práticas de engenharia de software para garantir escalabilidade, manutenibilidade e alta performance.
 
 ### 🌟 Pilares de Qualidade e Boas Práticas
 
-O projeto KRT.Cliente.API não é apenas um código funcional; é um exemplo de como a atenção às boas práticas transforma um sistema robusto e resiliente.
+O projeto KRT.Cliente.API é um exemplo de como a atenção às boas práticas transforma um sistema robusto e resiliente.
 
 #### 1\. Código Limpo (Clean Code) e Padrões S.O.L.I.D.
 
-Adotamos a filosofia *Clean Code* para garantir que o código seja legível, conciso e autoexplicativo, reduzindo a dívida técnica a longo prazo.
+Adotei a filosofia *Clean Code* para garantir que o código seja legível, conciso e autoexplicativo, reduzindo a dívida técnica a longo prazo.
 
   * **Responsabilidade Única (SRP):** Classes e métodos possuem responsabilidades bem definidas. Por exemplo, a camada de *Controller* foca apenas em roteamento e mapeamento de requisições, delegando a lógica de negócio e persistência.
   * **Nomeclatura Clara:** Variáveis, métodos e classes são nomeados de forma explícita, eliminando a necessidade de comentários excessivos.
@@ -28,13 +28,22 @@ A robustez da API é assegurada por uma bateria de testes unitários abrangentes
 
 #### 3\. Performance e Escalabilidade com Cache Distribuído (Redis/IDistributedCache)
 
-Para reduzir a latência e a pressão sobre o banco de dados, implementamos uma estratégia de *caching* avançada, seguindo o padrão **Cache-Aside**:
+Para reduzir a latência e a pressão sobre o banco de dados(AWS/nuvem), implementei uma estratégia de *caching* avançada, seguindo o padrão **Cache-Aside**:
 
   * **Abstração com `IDistributedCache`:** O projeto utiliza a interface `IDistributedCache` do ASP.NET Core, permitindo a fácil substituição do provedor de cache (ex: de Redis para Memcached) sem alterar a lógica da aplicação.
-  * **Estratégia de Cache Inteligente:**
-      * **Leitura (Hit/Miss):** A API primeiro verifica o cache (`GetAsync`). Se o dado for encontrado (*Hit*), ele é retornado instantaneamente. Se não (*Miss*), o dado é buscado no banco de dados e salvo no cache (`SetAsync`) para consultas futuras.
-      * **Invalidação de Cache:** Em operações de escrita (`POST`, `PUT`, `DELETE`), todos os caches relevantes (p. ex., cache da conta específica, lista de contas ativas, resumo de status) são **invalidados** (`RemoveAsync`), garantindo a consistência dos dados nas próximas leituras.
-  * **Mocking de Extensões de Cache:** Os testes foram adaptados para interagir diretamente com os métodos base assíncronos (`GetAsync`/`SetAsync`) da interface `IDistributedCache`, contornando a limitação do Moq em relação a métodos de extensão (`GetStringAsync`/`SetStringAsync`), o que é uma prática avançada de *mocking* em .NET.
+  * **Estratégia de Cache Inteligente:** A API prioriza a leitura do cache e garante a invalidação consistente dos dados em operações de escrita (`POST`, `PUT`, `DELETE`), mantendo a precisão e a performance do sistema.
+
+### 💾 Persistência de Dados: Adotando SQLite
+
+O projeto utiliza o **SQLite** como motor de banco de dados para o desenvolvimento local e testes de integração, aproveitando suas características singulares:
+
+  * **Zero Configuração (Serverless):** O SQLite dispensa um servidor de banco de dados dedicado. O banco de dados é armazenado em um único arquivo, o que elimina a complexidade de instalação, configuração e manutenção de instâncias de bancos de dados como SQL Server ou PostgreSQL.
+  * **Portabilidade Imediata:** A facilidade de movimentação do arquivo do banco de dados torna o ambiente de desenvolvimento extremamente portátil e rápido de configurar em qualquer nova máquina.
+  * **Agilidade em CI/CD e Testes:** Em pipelines de Integração Contínua/Entrega Contínua (CI/CD), a ausência de dependências de servidor para o banco de dados simplifica o ambiente de *build* e acelera a execução de testes de integração, contribuindo para ciclos de *feedback* mais rápidos.
+
+<p align="center">
+   <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/database.png?raw=true" width="700" alt="Testes">
+</p>
 
 -----
 
@@ -42,7 +51,7 @@ Para reduzir a latência e a pressão sobre o banco de dados, implementamos uma 
 
   * **Linguagem:** C\#
   * **Framework:** ASP.NET Core
-  * **Persistência:** Entity Framework Core (EF Core)
+  * **Persistência:** Entity Framework Core (EF Core) com **SQLite** e EF Core InMemory (para testes unitários)
   * **Testes:** xUnit, Moq
   * **Cache:** `IDistributedCache` (Pronto para Redis)
 
