@@ -5,7 +5,7 @@ using KRT.Cliente.Api.Models;
 
 namespace KRT.Cliente.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("v1/api/[controller]")]
     [ApiController]
     public class ContasController : ControllerBase
     {
@@ -33,6 +33,27 @@ namespace KRT.Cliente.Api.Controllers
             }
 
             return conta;
+        }
+
+        [HttpGet("EndPointSistemaTerceiros/{id}")]
+        public async Task<ActionResult<ContaDTO>> GetContasSistemasTerceiros(Guid id)
+        {
+            var conta = await _context.TB_Contas.FindAsync(id);
+
+            if (conta == null)
+            {
+                return NotFound();
+            }
+
+            var contaDTO = new ContaDTO
+            {
+                Id = conta.Id,
+                Nome = conta.NomeTitular,
+                CPF = conta.CPF,
+                StatusConta = conta.Status ? "Ativa" : "Inativa"
+            };
+
+            return contaDTO;
         }
 
         [HttpPut("{id}")]
