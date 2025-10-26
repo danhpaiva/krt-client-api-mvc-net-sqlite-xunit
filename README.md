@@ -1,7 +1,7 @@
 # 🚀 KRT.Cliente.API: <br> Uma API de Clientes Construída com .NET e Redis
 
 <p align="center">
-   <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/api.png?raw=true" width="700" alt="Link da imagem Quebrado por permissoes do GitHub - Clique aqui para ver a imagem da API">
+   <img src="https://i.ibb.co/yFg0K21T/api.png?raw=true" width="700" alt="Link da imagem Quebrado por permissoes do GitHub - Clique aqui para ver a imagem da API">
 </p>
 
 Este repositório apresenta um projeto de API RESTful focada na gestão de dados de clientes (`Conta`), desenvolvido em **ASP.NET Core** e seguindo as melhores práticas de engenharia de software para garantir escalabilidade, manutenibilidade e alta performance.
@@ -117,7 +117,7 @@ dotnet test KRT.Cliente.API.Test
 ```
 
 <p align="center">
-   <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/testes_unitarios.png?raw=true" width="700" alt="Link da imagem Quebrado por permissoes do GitHub - Clique aqui para ver a imagem dos Testes">
+   <img src="https://i.ibb.co/sd4M9wj9/testes-unitarios.png?raw=true" width="700" alt="Link da imagem Quebrado por permissoes do GitHub - Clique aqui para ver a imagem dos Testes">
 </p>
 
 ## 👤 Desenvolvedor
