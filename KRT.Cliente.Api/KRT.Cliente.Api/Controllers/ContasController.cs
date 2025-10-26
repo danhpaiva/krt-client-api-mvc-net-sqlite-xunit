@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using KRT.Cliente.Api.Data;
+﻿using KRT.Cliente.Api.Data;
 using KRT.Cliente.Api.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace KRT.Cliente.Api.Controllers
 {
@@ -10,10 +12,21 @@ namespace KRT.Cliente.Api.Controllers
     public class ContasController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IDistributedCache _cache;
 
-        public ContasController(AppDbContext context)
+        public ContasController(AppDbContext context, IDistributedCache cache)
         {
             _context = context;
+            _cache = cache;
+        }
+
+        private async Task InvalidateCaches(Conta conta)
+        {
+            await _cache.RemoveAsync($"conta:{conta.CPF}");
+
+            await _cache.RemoveAsync("ResumoStatus");
+            await _cache.RemoveAsync("ContasAtivas");
+            await _cache.RemoveAsync("ContasInativas");
         }
 
         [HttpGet]
@@ -69,6 +82,7 @@ namespace KRT.Cliente.Api.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                await InvalidateCaches(conta);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -91,6 +105,8 @@ namespace KRT.Cliente.Api.Controllers
             _context.TB_Contas.Add(conta);
             await _context.SaveChangesAsync();
 
+            await InvalidateCaches(conta);
+
             return CreatedAtAction("GetConta", new { id = conta.Id }, conta);
         }
 
@@ -106,6 +122,8 @@ namespace KRT.Cliente.Api.Controllers
             _context.TB_Contas.Remove(conta);
             await _context.SaveChangesAsync();
 
+            await InvalidateCaches(conta);
+
             return NoContent();
         }
 
@@ -117,8 +135,14 @@ namespace KRT.Cliente.Api.Controllers
         [HttpGet("Ativos")]
         public async Task<ActionResult<IEnumerable<ContaDTO>>> GetContasAtivas()
         {
+            var cacheKey = "ContasAtivas";
+            var cached = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cached))
+                return Ok(JsonSerializer.Deserialize<List<ContaDTO>>(cached));
+
             var contasAtivas = await _context.TB_Contas
-                .Where(c => c.Status == true)
+                .Where(c => c.Status)
                 .Select(c => new ContaDTO
                 {
                     Id = c.Id,
@@ -128,17 +152,30 @@ namespace KRT.Cliente.Api.Controllers
                 })
                 .ToListAsync();
 
-            if (contasAtivas == null || contasAtivas.Count == 0)
+            if (!contasAtivas.Any())
                 return NotFound("Nenhuma conta ativa encontrada.");
+
+            var expiration = DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1) - DateTime.UtcNow;
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(contasAtivas), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            });
 
             return Ok(contasAtivas);
         }
 
+
         [HttpGet("Inativos")]
         public async Task<ActionResult<IEnumerable<ContaDTO>>> GetContasInativas()
         {
+            var cacheKey = "ContasInativas";
+            var cached = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cached))
+                return Ok(JsonSerializer.Deserialize<List<ContaDTO>>(cached));
+
             var contasInativas = await _context.TB_Contas
-                .Where(c => c.Status == false)
+                .Where(c => !c.Status)
                 .Select(c => new ContaDTO
                 {
                     Id = c.Id,
@@ -148,17 +185,30 @@ namespace KRT.Cliente.Api.Controllers
                 })
                 .ToListAsync();
 
-            if (contasInativas == null || contasInativas.Count == 0)
+            if (!contasInativas.Any())
                 return NotFound("Nenhuma conta inativa encontrada.");
+
+            var expiration = DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1) - DateTime.UtcNow;
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(contasInativas), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            });
 
             return Ok(contasInativas);
         }
+
 
         [HttpGet("TotaisPorAno")]
         public async Task<ActionResult<List<TotalAnoDTO>>> GetTotaisPorAno([FromQuery] int[] anos)
         {
             if (anos == null || anos.Length == 0)
                 return BadRequest("Informe pelo menos um ano. Exemplo: /v1/api/Contas/TotaisPorAno?anos=2024&anos=2025");
+
+            var cacheKey = "TotaisPorAno:" + string.Join(",", anos.OrderBy(x => x));
+            var cached = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cached))
+                return Ok(JsonSerializer.Deserialize<List<TotalAnoDTO>>(cached));
 
             var totais = await _context.TB_Contas
                 .Where(c => anos.Contains(c.CriadoEm.Year))
@@ -173,6 +223,12 @@ namespace KRT.Cliente.Api.Controllers
 
             if (!totais.Any())
                 return NotFound("Nenhum cliente encontrado para os anos informados.");
+
+            var expiration = DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1) - DateTime.UtcNow;
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(totais), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            });
 
             return Ok(totais);
         }
@@ -192,6 +248,9 @@ namespace KRT.Cliente.Api.Controllers
             conta.AtualizadoEm = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await InvalidateCaches(conta);
+
             return Ok(new { mensagem = "Conta ativada com sucesso.", conta.Id, conta.Status });
         }
 
@@ -209,12 +268,24 @@ namespace KRT.Cliente.Api.Controllers
             conta.AtualizadoEm = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await InvalidateCaches(conta);
+
             return Ok(new { mensagem = "Conta inativada com sucesso.", conta.Id, conta.Status });
         }
 
         [HttpGet("cpf/{cpf}")]
         public async Task<ActionResult<ContaDTO>> GetContaPorCPF(string cpf)
         {
+            var cacheKey = $"conta:{cpf}";
+            var cachedConta = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cachedConta))
+            {
+                var dtoFromCache = JsonSerializer.Deserialize<ContaDTO>(cachedConta);
+                return Ok(dtoFromCache);
+            }
+
             var conta = await _context.TB_Contas
                 .FirstOrDefaultAsync(c => c.CPF == cpf);
 
@@ -229,12 +300,29 @@ namespace KRT.Cliente.Api.Controllers
                 StatusConta = conta.Status ? "Ativa" : "Inativa"
             };
 
+            // Definir expiração até o final do dia
+            var expiration = DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1) - DateTime.UtcNow;
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            };
+
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(dto), cacheOptions);
+
             return Ok(dto);
         }
 
         [HttpGet("ResumoStatus")]
         public async Task<ActionResult<ResumoStatusDTO>> GetResumoStatus()
         {
+            var cacheKey = "ResumoStatus";
+            var cached = await _cache.GetStringAsync(cacheKey);
+
+            if (!string.IsNullOrEmpty(cached))
+            {
+                return Ok(JsonSerializer.Deserialize<ResumoStatusDTO>(cached));
+            }
+
             var totalAtivas = await _context.TB_Contas.CountAsync(c => c.Status);
             var totalInativas = await _context.TB_Contas.CountAsync(c => !c.Status);
 
@@ -244,6 +332,12 @@ namespace KRT.Cliente.Api.Controllers
                 TotalInativas = totalInativas,
                 TotalGeral = totalAtivas + totalInativas
             };
+
+            var expiration = DateTime.UtcNow.Date.AddDays(1).AddSeconds(-1) - DateTime.UtcNow;
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(resumo), new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            });
 
             return Ok(resumo);
         }
@@ -278,6 +372,8 @@ namespace KRT.Cliente.Api.Controllers
 
             conta.DeletadoEm = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+
+            await InvalidateCaches(conta);
 
             return Ok(new { mensagem = "Conta marcada como deletada.", conta.Id });
         }
@@ -316,6 +412,8 @@ namespace KRT.Cliente.Api.Controllers
             conta.AtualizadoEm = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await InvalidateCaches(conta);
 
             return Ok(new { mensagem = "Conta restaurada com sucesso.", conta.Id });
         }
