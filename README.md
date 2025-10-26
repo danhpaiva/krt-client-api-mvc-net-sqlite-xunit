@@ -1,4 +1,8 @@
-## 🚀 KRT.Cliente.API: Uma API de Clientes Construída com Qualidade e Performance
+## 🚀 KRT.Cliente.API: <br>Uma API de Clientes Construída com Qualidade e Performance
+
+<p align="center">
+   <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/api.png?raw=true" width="700" alt="Diagrama">
+</p>
 
 Este repositório apresenta um projeto de API RESTful focada na gestão de dados de clientes (`Conta`), desenvolvido em **ASP.NET Core** e seguindo as mais rigorosas práticas de engenharia de software para garantir escalabilidade, manutenibilidade e alta performance.
 
@@ -8,7 +12,7 @@ O projeto KRT.Cliente.API não é apenas um código funcional; é um exemplo de 
 
 #### 1\. Código Limpo (Clean Code) e Padrões S.O.L.I.D.
 
-Adotamos a filosofia *Clean Code* de Robert C. Martin para garantir que o código seja legível, conciso e autoexplicativo, reduzindo a dívida técnica a longo prazo.
+Adotamos a filosofia *Clean Code* para garantir que o código seja legível, conciso e autoexplicativo, reduzindo a dívida técnica a longo prazo.
 
   * **Responsabilidade Única (SRP):** Classes e métodos possuem responsabilidades bem definidas. Por exemplo, a camada de *Controller* foca apenas em roteamento e mapeamento de requisições, delegando a lógica de negócio e persistência.
   * **Nomeclatura Clara:** Variáveis, métodos e classes são nomeados de forma explícita, eliminando a necessidade de comentários excessivos.
