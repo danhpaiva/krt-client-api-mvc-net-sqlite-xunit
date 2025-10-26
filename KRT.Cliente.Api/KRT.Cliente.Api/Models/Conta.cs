@@ -17,6 +17,7 @@ public class Conta
     public string Email { get; set; } = default!;
     public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
     public DateTime? AtualizadoEm { get; set; }
+    [Required(ErrorMessage = "O campo Status é obrigatorio.")]
     public bool Status { get; set; } = false;
     public DateTime? DeletadoEm { get; set; }
 }
