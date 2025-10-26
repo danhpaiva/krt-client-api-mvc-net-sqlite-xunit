@@ -42,7 +42,7 @@ O projeto utiliza o **SQLite** como motor de banco de dados para o desenvolvimen
   * **Agilidade em CI/CD e Testes:** Em pipelines de Integração Contínua/Entrega Contínua (CI/CD), a ausência de dependências de servidor para o banco de dados simplifica o ambiente de *build* e acelera a execução de testes de integração, contribuindo para ciclos de *feedback* mais rápidos.
 
 <p align="center">
-   <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/database.png?raw=true" width="700" alt="Testes">
+   <img src="https://github.com/danhpaiva/krt-client-api-mvc-net-sqlite-xunit/blob/main/src/database.png?raw=true" width="700" alt="Database">
 </p>
 
 -----
